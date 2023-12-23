@@ -12,8 +12,6 @@ if (isset($_SESSION['loggedIn']) && isset($_SESSION['name'])) {
     $loggedIn = true;
 }
 
-
-
 $app->get('/',function(Request $request,Response $response)
 {
     
@@ -97,7 +95,7 @@ $app->post('/register',function(Request $request,Response $response)
         $_SESSION['loggedIn'] = 1;
         $_SESSION['name'] = $_name;
         $_SESSION['email'] = $_email;
-        exit(json_encode($_SESSION['name']));
+        exit('Success');
     }
 
 });
@@ -163,6 +161,13 @@ $app->post('/add',function(Request $request,Response $response){
 
     if(isset($_SESSION['ID']))
     $_userid=$_SESSION['ID'];
+    else
+    {
+        $queryBuilder=$this->get('DB')->getQueryBuilder();
+        $queryBuilder->select('ID','Name','Email','Password')->from('CommentSystem')->where('Email=?')->setParameter(1,$_SESSION['email']);
+        $results=$queryBuilder->executeQuery()->fetchAssociative();
+        $_userid=$results['ID'];
+    }
 
     $queryBuilder=$this->get('DB')->getQueryBuilder();
 
@@ -178,7 +183,7 @@ $app->post('/add',function(Request $request,Response $response){
 
     $results2=$queryBuilder->executeStatement();
 
-    exit('success');
+    exit($results2);
 });
 
 $app->post('/reply',function(Request $request,Response $response){
@@ -192,6 +197,13 @@ $app->post('/reply',function(Request $request,Response $response){
     
     if(isset($_SESSION['ID']))
     $_userid=$_SESSION['ID'];
+    else
+    {
+        $queryBuilder=$this->get('DB')->getQueryBuilder();
+        $queryBuilder->select('ID','Name','Email','Password')->from('CommentSystem')->where('Email=?')->setParameter(1,$_SESSION['email']);
+        $results=$queryBuilder->executeQuery()->fetchAssociative();
+        $_userid=$results['ID'];
+    }
 
     $queryBuilder=$this->get('DB')->getQueryBuilder();
 
@@ -226,13 +238,29 @@ $app->post('/DisLike',function(Request $request,Response $response)
     $_dislike=$_dislike+1;
 
     $queryBuilder=$this->get('DB')->getQueryBuilder();
+
+    $queryBuilder->select('*')->from('LikesAndDisLikes')->where('EmailID=?','CommentID=?')
+    ->setParameter(1,$_SESSION['email'])->setParameter(2,$_commentid);
+
+    $result=$queryBuilder->executeStatement();
+
+    if($result!=null)
+    {
+        exit('Already Liked');
+    }
+
     $queryBuilder->update('Comments')->set('Dislikes','?')->where('Comments.CommentID=?')
     ->setParameter(1,$_dislike)
     ->setParameter(2,$_commentid);
 
     $results2=$queryBuilder->executeStatement();
 
-    exit(json_encode($_dislike));
+    $queryBuilder->insert('LikesAndDisLikes')->setvalue('EmailID','?')->setValue('CommentID','?')->setParameter(1,$_SESSION['email'])
+    ->setParameter(2,$_commentid);
+
+    $results=$queryBuilder->executeStatement();
+
+    exit('success');
 });
 
 $app->post('/Like',function(Request $request,Response $response)
@@ -243,13 +271,27 @@ $app->post('/Like',function(Request $request,Response $response)
     $_like=$_like+1;
 
     $queryBuilder=$this->get('DB')->getQueryBuilder();
+
+    $queryBuilder->select('*')->from('LikesAndDisLikes')->where('EmailID=?','CommentID=?')
+    ->setParameter(1,$_SESSION['email'])->setParameter(2,$_commentid);
+    $result=$queryBuilder->executeStatement();
+
+    if($result!=null)
+    {
+        exit('Already Liked');
+    }
+
     $queryBuilder->update('Comments')->set('Likes','?')->where('Comments.CommentID=?')
     ->setParameter(1,$_like)
     ->setParameter(2,$_commentid);
 
     $results2=$queryBuilder->executeStatement();
 
-    exit(json_encode($_like));
+    $queryBuilder->insert('LikesAndDisLikes')->setvalue('EmailID','?')->setValue('CommentID','?')->setParameter(1,$_SESSION['email'])
+    ->setParameter(2,$_commentid);
+    $results=$queryBuilder->executeStatement();
+
+    exit('success');
 });
 
 $app->get('/test',function(Request $request,Response $response)

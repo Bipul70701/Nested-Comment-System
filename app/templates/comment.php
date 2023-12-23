@@ -399,13 +399,20 @@ if(isset($loggedIn))
                             DisLike:$(caller).attr('dislike'),
                         },success: function(response){
                             console.log(response);
-                            window.location.replace("/comment/<?php
-                            if(isset($page))
+                            if(response==="success")
                             {
-                                echo $page;
+                                window.location.replace("/comment/<?php
+                                if(isset($page))
+                                {
+                                    echo $page;
+                                }
+                                else echo 1;
+                                ?>");
                             }
-                            else echo 1;
-                            ?>");
+                            else
+                            {
+                                alert("Already Liked or DisLiked");
+                            }
                         }
                         });
     }
@@ -422,13 +429,21 @@ if(isset($loggedIn))
                             Like:   $(caller).attr('like'),
                         },success: function(response){
                             console.log(response);
-                            window.location.replace("/comment/<?php
-                            if(isset($page))
+                            if(response==="success")
                             {
-                                echo $page;
+                                console.log(response);
+                                window.location.replace("/comment/<?php
+                                if(isset($page))
+                                {
+                                    echo $page;
+                                }
+                                else echo 1;
+                                ?>");
                             }
-                            else echo 1;
-                            ?>");
+                            else
+                            {
+                                alert("Already Liked or DisLiked");
+                            }
                         }
                     });
         
